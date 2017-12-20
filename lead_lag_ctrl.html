@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<title>lead-lag controller</title>
+		<!-- Required meta tags -->
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+
+		<!-- Bootstrap CSS -->
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+		<!-- Optional JavaScript -->
+		<!-- jQuery first, then Popper.js, then Bootstrap JS -->
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+		<style>
+			body {
+				background: #fff !important;
+			}
+
+			.wrapper {
+				margin-top: 20px;
+				margin-bottom: 80px;
+			}
+
+			.form1 {
+				margin-top: 10px;
+				margin-bottom: 10px;
+			}
+
+			.bodePlot {
+				margin: 0px auto;
+				max-width: 720px;
+			}
+
+			.tabs {
+				margin: 0px auto;
+				max-width: 720px;
+			}
+
+			.form-signin {
+				max-width: 720px;
+				padding: 10px 205px 35px;
+				margin: auto;
+				background-color: #fff;
+				border: 1px solid rgba(0,0,0,0.1);
+
+				.form-signin-heading,
+
+				.form-control {
+					position: relative;
+					font-size: 16px;
+					height: auto;
+					padding: 10px;
+					@include box-sizing(border-box);
+
+					&:focus {
+						z-index: 2;
+					}
+				}
+
+				input[type="text"] {
+					margin-bottom: -1px;
+					border-bottom-left-radius: 0;
+					border-bottom-right-radius: 0;
+				}
+			}
+		</style>
+	</head>
+	<body>
+		<div class="wrapper">
+			<div class="tabs">
+				<ul class="nav nav-tabs">
+					<li class="active"><a data-toggle="tab" href="#design_mode" onclick="reset()">Design mode</a></li>
+					<li><a data-toggle="tab" href="#user_mode" onclick="reset()">User mode</a></li>
+				</ul>
+			</div>
+			<div class="tab-content">
+				<div  id="design_mode" class="tab-pane fade in active">
+					<form class="form-signin" onsubmit="return false">
+						<h2 class="form-signin-heading">Controller Design</h2>
+						<div class="form1"><input type="text" class="form-control" id="frequency" placeholder="frequency in rad/s (>0)"/></div>
+						<div class="form1"><input type="text" class="form-control" id="phase" placeholder="phase in degree (-90~90)"/></div>
+						<button class="btn btn-lg btn-primary btn-block" onclick="clickEvent()">Design</button>
+						<div class="form1" id="controllerType"></div>
+						<div class="form1" id="controllerSelf" style="text-align:center"></div>
+					</form>
+				</div>
+				<div id="user_mode" class="tab-pane fade">
+					<form class="form-signin" onsubmit="return false">
+						<h2 class="form-signin-heading">Controller Input</h2>
+						<div class="form1"><input type="text" class="form-control" id="s_num" placeholder="numerator(s)"/></div>
+						<div class="form1"><input type="text" class="form-control" id="c_num" placeholder="numerator(constant)"/></div>
+						<div class="form1"><input type="text" class="form-control" id="s_den" placeholder="denominator(s)"/></div>
+						<div class="form1"><input type="text" class="form-control" id="c_den" placeholder="denominator(constant)"/></div>
+						<button class="btn btn-lg btn-primary btn-block" onclick="clickEvent2()">Draw</button>
+						<div class="form1" id="controllerType_"></div>
+						<div class="form1" id="controllerSelf_" style="text-align:center"></div>
+					</form>
+				</div>
+			</div>
+			<div class="bodePlot" id="bode_plot"></div>
+		</div>
+
+		<script type="text/javascript">
+			function reset() {
+				document.getElementById("controllerSelf").innerHTML = "";
+				document.getElementById("controllerSelf_").innerHTML = "";
+				document.getElementById("controllerType").innerHTML = "";
+				document.getElementById("controllerType_").innerHTML = "";
+				document.getElementById("bode_plot").innerHTML = "";
+			}
+			function clickEvent() {
+				document.getElementById("controllerSelf").innerHTML = "";
+				document.getElementById("controllerSelf_").innerHTML = "";
+				document.getElementById("controllerType").innerHTML = "";
+				document.getElementById("controllerType_").innerHTML = "";
+				document.getElementById("bode_plot").innerHTML = "";
+
+				var freq = document.getElementById("frequency").value;
+				var freq_f = Number(freq);
+				if(isNaN(freq_f)){document.getElementById("controllerType").innerHTML = "<font color=\"red\">Error, frequence = "+freq_f.toString()+"</font>";return;}
+				if(freq_f<=0){document.getElementById("controllerType").innerHTML = "<font color=\"red\">Error, frequency must be > 0"+"</font>";return;}
+				var phase = document.getElementById("phase").value;
+				var phase_f = Number(phase)
+				if(isNaN(phase_f)){document.getElementById("controllerType").innerHTML = "<font color=\"red\">Error, phase = "+phase_f.toString()+"</font>";return;}
+				if(Math.abs(phase_f)>=90){document.getElementById("controllerType").innerHTML = "<font color=\"red\">Error, phase must be >-90 and <90 degree"+"</font>";return;}
+
+				var type = "phase ";
+				if(phase_f>0){type += "lead controller:";}
+				else{type += "lag controller:";}
+				document.getElementById("controllerType").innerHTML = "<h5>"+type+"</h5>";
+
+				var a = (1.0+Math.sin(phase_f/180.0*Math.PI))/(1.0-Math.sin(phase_f/180.0*Math.PI));
+				var T = 1.0/freq_f/Math.sqrt(a);
+
+				var controller = "<br>"
+				controller += ((a*T).toFixed(8)).toString()+"s + 1<br>";
+				controller += "__________________<br><br>";
+				controller += (T.toFixed(8)).toString()+"s + 1";
+				document.getElementById("controllerSelf").innerHTML = "<h4>"+controller+"</h4>";
+
+				var freqs = new Array(100);
+				var gains = new Array(100);
+				var phases = new Array(100);
+				for(var i=1;i<=100;i++)
+				{
+					freqs[i] = freq_f*Math.pow(10.0,(i-50.0)/(25.0-(phase_f/90)*10));
+					gains[i] = 20.0*Math.log10(Math.hypot(1,a*T*freqs[i])/Math.hypot(1,T*freqs[i]));
+					phases[i] = (Math.atan(a*T*freqs[i])-Math.atan(T*freqs[i]))*180.0/Math.PI;
+				}
+				bodePlot(freqs,gains,phases);
+
+			}
+
+			function clickEvent2() {
+				document.getElementById("controllerSelf").innerHTML = "";
+				document.getElementById("controllerSelf_").innerHTML = "";
+				document.getElementById("controllerType").innerHTML = "";
+				document.getElementById("controllerType_").innerHTML = "";
+				document.getElementById("bode_plot").innerHTML = "";
+
+				var s_n = Number(document.getElementById("s_num").value);
+				if(isNaN(s_n)){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, numerator(s) = "+s_n.toString()+"</font>";return;}
+				if(s_n<=0){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, numerator(s) must be > 0"+"</font>";return;}
+				var c_n = Number(document.getElementById("c_num").value);
+				if(isNaN(c_n)){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, numerator(constant) = "+c_n.toString()+"</font>";return;}
+				if(c_n<=0){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, numerator(constant) must be > 0"+"</font>";return;}
+				var s_d = Number(document.getElementById("s_den").value);
+				if(isNaN(s_d)){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, denominator(s) = "+s_d.toString()+"</font>";return;}
+				if(s_d<=0){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, denominator(s) must be > 0"+"</font>";return;}
+				var c_d = Number(document.getElementById("c_den").value);
+				if(isNaN(c_d)){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, denominator(constant) = "+c_d.toString()+"</font>";return;}
+				if(c_d<=0){document.getElementById("controllerType_").innerHTML = "<font color=\"red\">Error, denominator(constant) must be > 0"+"</font>";return;}
+
+				var type = "phase ";
+				var mag_num = s_n/c_n;
+				var mag_den = s_d/c_d;
+				if(mag_num>mag_den){type += "lead controller:";}
+				else{type += "lag controller:";}
+				document.getElementById("controllerType_").innerHTML = "<h5>"+type+"</h5>";
+
+				var controller = "<br>";
+				controller += s_n.toString()+"s + "+c_n.toString()+"<br>";
+				controller += "__________________<br><br>";
+				controller += s_d.toString()+"s +"+c_d.toString();
+				document.getElementById("controllerSelf_").innerHTML = "<h4>"+controller+"</h4>";
+
+				var freqs = new Array(100);
+				var gains = new Array(100);
+				var phases = new Array(100);
+				var phase_f = Math.asin((mag_num/mag_den-1)/(mag_num/mag_den+1))*180/Math.PI;
+				var freq_f = 1/Math.sqrt(mag_num*mag_den);
+				for(var i=1;i<=100;i++)
+				{
+					freqs[i] = freq_f*Math.pow(10.0,(i-50.0)/(25.0-(phase_f/90)*10));
+					gains[i] = 20.0*Math.log10(Math.hypot(c_n,s_n*freqs[i])/Math.hypot(c_d,s_d*freqs[i]));
+					phases[i] = (Math.atan(mag_num*freqs[i])-Math.atan(mag_den*freqs[i]))*180.0/Math.PI;
+				}
+
+				bodePlot(freqs,gains,phases);
+
+			}
+
+			function bodePlot(freqs,gains,phases){
+				var gainData = {
+					name: 'gain',
+					x: freqs,
+					y: gains,
+					mode: 'lines',
+					line: {
+				  		color: 'rgb(55, 128, 191)',
+					}
+				};
+
+				var phaseData = {
+					name: 'phase',
+					x: freqs,
+					y: phases,
+					xaxis: 'x2',
+					yaxis: 'y2',
+					mode: 'lines',
+					line: {
+				  		color: 'rgb(55, 128, 191)',
+					}
+				};
+
+				var data = [gainData, phaseData];
+
+				var layout ={
+					title: 'Bode Diagram',
+					showlegend: false,
+					xaxis: {
+						linecolor: 'black',
+						mirror: true,
+				    	type: 'log',
+				    	autorange: true
+					},
+					xaxis2:{
+						linecolor: 'black',
+						mirror: true,
+						title: 'Frequency (rad/sec)',
+						anchor: 'y2',
+						type: 'log',
+				    	autorange: true
+					},
+					yaxis:{
+						zeroline: false,
+						linecolor: 'black',
+						mirror: true,
+						title: 'Magnitude (dB)',
+						domain: [0.55, 1]
+					},
+					yaxis2:{
+						zeroline: false,
+						linecolor: 'black',
+						mirror: true,
+						title: 'Phase (deg)',
+						domain: [0, 0.45]
+					}
+				};
+				Plotly.newPlot('bode_plot', data, layout);
+			}
+
+		</script>
+	</body>
+</html>
