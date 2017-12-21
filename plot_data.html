@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+        <title>plot data</title>
+
+		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+        <link href="css/ip.grid.css" rel="stylesheet">
+
+		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
+		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+		<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+        <script src="js/jquery-ui-1.9.2.custom.min.js"></script>
+        <script src="js/ip.grid.js"></script>
+
+        <script>
+            $(document).ready(function () {
+                $('#demo').ip_Grid({ rows: 10000,  cols: 26 });
+            });
+        </script>
+
+        <style>
+            body {
+                background-color: #fff;
+            }
+            .gridContainer {
+                position:relative;
+                width:700px;
+                height:500px;
+            }
+
+            #demo {
+                width:100%;
+                height:100%;
+            }
+        </style>
+
+    </head>
+    <body>
+        <div class="gridContainer">
+            <div id="demo"></div>
+        </div>
+
+        <div id="print">123</div>
+        <button id="btn">get</button>
+
+        <script>
+            $("#btn").click(function(){
+                $("#print").empty();
+                let a = $('#demo').ip_GetElementValue(0,0);
+                $("#print").append("<h1>"+a+"</h1>");
+            });
+        </script>
+
+
+
+
+    </body>
+</html>
