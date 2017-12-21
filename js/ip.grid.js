@@ -3284,7 +3284,7 @@ var thisBrowser = ip_Browser();
                             recalculate = (hashTags != null || controlType.dataType != null || mask != null || controlType.validation != null);
                             ip_SetCellFormat(GridID, { mask:mask, validation: controlType.validation, controlType: controlType.controlType, dataType: controlType.dataType, hashTags: hashTags, recalculate: recalculate });
                         }
-                        ip_DisableSelection(GridID);
+                        //ip_DisableSelection(GridID);
 
                         $().ip_Modal({ show: false });
 
@@ -3294,7 +3294,8 @@ var thisBrowser = ip_Browser();
                 cancel: {
                     text: 'CANCEL', style: "background: #9c3b3b;background: -moz-linear-gradient(top,  #9c3b3b 0%, #752c2c 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#9c3b3b), color-stop(100%,#752c2c)); background: -webkit-linear-gradient(top,  #9c3b3b 0%,#752c2c 100%); background: -o-linear-gradient(top,  #9c3b3b 0%,#752c2c 100%); background: -ms-linear-gradient(top,  #9c3b3b 0%,#752c2c 100%); background: linear-gradient(to bottom,  #9c3b3b 0%,#752c2c 100%); filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#9c3b3b', endColorstr='#752c2c',GradientType=0 );", onClick: function () {
                         ip_GridProps[GridID].formatting.formatting = false;
-                        ip_DisableSelection(GridID); $().ip_Modal({ show: false });
+                        //ip_DisableSelection(GridID); 
+                        $().ip_Modal({ show: false });
                     }
                 }
 
@@ -5422,7 +5423,7 @@ function ip_CreateGrid(options) {
     ip_ShowGridResizerHandle(options.id);
 
     //remove text selection
-    ip_DisableSelection(options.id, true);
+    //ip_DisableSelection(options.id, true);
 
     ip_SetupFx(options.id);
     ip_SetupMask(options.id);
@@ -7160,7 +7161,7 @@ function ip_ChangeRange(GridID, RangeOridantes, endCell, animateSpeed, rowIncrem
 
     if (ip_GridProps[GridID].selectedRange.length > 0) {
 
-        ip_DisableSelection(GridID, true);
+        //ip_DisableSelection(GridID, true);
 
         //Initialize & validate variables
         resetPivit = (resetPivit == null ? false : resetPivit);
@@ -7355,7 +7356,7 @@ function ip_SelectTextTool(GridID, startRow, startCol, endRow, endCol, append) {
 
     $('#' + GridID).enableSelection();
     $('#' + GridID + '_selectTool').select();
-    $(document).disableSelection();
+    //$(document).disableSelection();
 
 }
 
@@ -14844,7 +14845,7 @@ function ip_TextEditbleBlur(GridID, defaultValue, editTool, editToolInput, eleme
             }
         }
 
-        ip_DisableSelection(GridID, true);
+        //ip_DisableSelection(GridID, true);
         ip_EditToolHelpClear(GridID, editTool, editToolInput);
         $(editTool).hide();
 
