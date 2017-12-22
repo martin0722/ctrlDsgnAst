@@ -3294,7 +3294,7 @@ var thisBrowser = ip_Browser();
                 cancel: {
                     text: 'CANCEL', style: "background: #9c3b3b;background: -moz-linear-gradient(top,  #9c3b3b 0%, #752c2c 100%); background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,#9c3b3b), color-stop(100%,#752c2c)); background: -webkit-linear-gradient(top,  #9c3b3b 0%,#752c2c 100%); background: -o-linear-gradient(top,  #9c3b3b 0%,#752c2c 100%); background: -ms-linear-gradient(top,  #9c3b3b 0%,#752c2c 100%); background: linear-gradient(to bottom,  #9c3b3b 0%,#752c2c 100%); filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#9c3b3b', endColorstr='#752c2c',GradientType=0 );", onClick: function () {
                         ip_GridProps[GridID].formatting.formatting = false;
-                        //ip_DisableSelection(GridID); 
+                        //ip_DisableSelection(GridID);
                         $().ip_Modal({ show: false });
                     }
                 }
@@ -3451,6 +3451,7 @@ var thisBrowser = ip_Browser();
 
     }
 
+    //---------------------------define by martin-------------------------------
     $.fn.ip_GetElementValue = function (row, col) {
 
         var GridID = $(this).attr('id');
@@ -3458,6 +3459,15 @@ var thisBrowser = ip_Browser();
         return ip_GetElementValue_(GridID, row, col);
 
     }
+
+    $.fn.ip_GetRange = function () {
+
+        var GridID = $(this).attr('id');
+
+        return ip_GetRange_(GridID);
+
+    }
+    //-----------------------------2017/12/23-----------------------------------
 
     $.fn.ip_Render = function (options) {
 
@@ -13305,10 +13315,15 @@ function ip_SetValue(GridID, row, col, value, oldMask) {
     return false;
 }
 
+//---------------------------define by martin-----------------------------------
 function ip_GetElementValue_(GridID, row, col) {
-
     return ip_GridProps[GridID].rowData[row].cells[col].value;
 }
+
+function ip_GetRange_(GridID) {
+    return ip_GridProps[GridID].selectedRange;
+}
+//-----------------------------2017/12/23---------------------------------------
 
 function ip_SetCellFormat(GridID, options) {
     //This is physically different to SetCellValue because it accepts formatting options and applies it to the entire range, this single value for the entire range then syncs

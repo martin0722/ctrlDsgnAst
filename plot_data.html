@@ -49,7 +49,8 @@
             $("#btn").click(function(){
                 $("#print").empty();
                 let a = $('#demo').ip_GetElementValue(0,0);
-                $("#print").append("<h1>"+a+"</h1>");
+                let b = $('#demo').ip_GetRange();
+                $("#print").append("<h1>"+b[0][0][0]+b[0][0][1]+b[0][1][0]+b[0][1][1]+"</h1>");
             });
         </script>
 
