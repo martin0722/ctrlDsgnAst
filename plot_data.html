@@ -48,9 +48,46 @@
         <script>
             $("#btn").click(function(){
                 $("#print").empty();
-                let a = $('#demo').ip_GetElementValue(0,0);
-                let b = $('#demo').ip_GetRange();
-                $("#print").append("<h1>"+b[0][0][0]+b[0][0][1]+b[0][1][0]+b[0][1][1]+"</h1>");
+
+                let ranges = $('#demo').ip_GetRange();
+                for(let i = 0; i<ranges.length; i++){
+                    $("#print").append("<p><h1>"+"select: "+i+"</h1></p>");
+                    let row_ini = ranges[i][0][0];
+                    let col_ini = ranges[i][0][1];
+                    let row_end = ranges[i][1][0];
+                    let col_end = ranges[i][1][1];
+                    let message;
+                    for(j = row_ini;j<=row_end;j++){
+                        $("#print").append("<p>");
+                        for(k = col_ini;k<=col_end;k++){
+                            let one_element = $('#demo').ip_GetElementValue(j,k);
+                            $("#print").append(one_element+", ");
+                        }
+                        $("#print").append("</p>");
+                    }
+                }
+
+                var data_to_save = [];
+                let csvContent = "data:text/csv;charset=utf-8,";
+                for(let i=0;i<10000;i++){
+                    data_to_save.push([]);
+                    for(let j=0;j<26;j++){
+                        data_to_save[i].push($('#demo').ip_GetElementValue(i,j));
+                    }
+                }
+                data_to_save.forEach(function(rowArray){
+                    let row = rowArray.join(",");
+                    csvContent += row + "\r\n"; // add carriage return
+                });
+
+
+                var encodedUri = encodeURI(csvContent);
+                var link = document.createElement("a");
+                link.setAttribute("href", encodedUri);
+                link.setAttribute("download", "table.csv");
+                document.body.appendChild(link); // Required for FF
+                link.click(); // This will download the data file named "my_data.csv".
+
             });
         </script>
 
