@@ -17,17 +17,32 @@
         <script>
             $(document).ready(function () {
                 $('#demo').ip_Grid({ rows: 10000,  cols: 26 });
-            });
+                $('#demo').disableSelection();
+        });
         </script>
 
         <style>
             body {
                 background-color: #fff;
             }
-            .gridContainer {
-                position:relative;
-                width:700px;
-                height:500px;
+
+            .right{
+                float: right;
+                width:50%;
+            }
+
+            .css_brn_right{
+                float: right;
+            }
+
+            .left{
+                float: left;
+                width:50%;
+                height:100vh;
+            }
+
+            .css_figure{
+                height: 50vh;
             }
 
             #demo {
@@ -38,35 +53,24 @@
 
     </head>
     <body>
-        <div class="gridContainer">
+        <div id="sheet" class="left">
             <div id="demo"></div>
         </div>
-
-        <div id="print">123</div>
-        <button id="btn">get</button>
+        <div class="right">
+            <button class="css_brn_right" id="sav_data">download sheet</button>
+            <button id="draw">draw</button>
+            <button id="clear">clear all</button>
+            <div id="figures"></div>
+        </div>
 
         <script>
-            $("#btn").click(function(){
-                $("#print").empty();
+            var fig_cnt = 0;
+            $("#clear").click(function(){
+                $("#figures").empty();
+                fig_cnt = 0;
+            });
 
-                let ranges = $('#demo').ip_GetRange();
-                for(let i = 0; i<ranges.length; i++){
-                    $("#print").append("<p><h1>"+"select: "+i+"</h1></p>");
-                    let row_ini = ranges[i][0][0];
-                    let col_ini = ranges[i][0][1];
-                    let row_end = ranges[i][1][0];
-                    let col_end = ranges[i][1][1];
-                    let message;
-                    for(j = row_ini;j<=row_end;j++){
-                        $("#print").append("<p>");
-                        for(k = col_ini;k<=col_end;k++){
-                            let one_element = $('#demo').ip_GetElementValue(j,k);
-                            $("#print").append(one_element+", ");
-                        }
-                        $("#print").append("</p>");
-                    }
-                }
-
+            $("#sav_data").click(function(){
                 var data_to_save = [];
                 let csvContent = "data:text/csv;charset=utf-8,";
                 for(let i=0;i<10000;i++){
@@ -80,19 +84,89 @@
                     csvContent += row + "\r\n"; // add carriage return
                 });
 
-
                 var encodedUri = encodeURI(csvContent);
                 var link = document.createElement("a");
                 link.setAttribute("href", encodedUri);
                 link.setAttribute("download", "table.csv");
                 document.body.appendChild(link); // Required for FF
                 link.click(); // This will download the data file named "my_data.csv".
-
             });
+
+            $("#draw").click(function(){
+                fig_cnt++;
+                let ranges = $('#demo').ip_GetRange();
+                for(let i = 0; i<ranges.length; i++){
+                    let row_ini = Math.max(0,ranges[i][0][0]);
+                    let col_ini = Math.max(0,ranges[i][0][1]);
+                    let row_end = ranges[i][1][0];
+                    let col_end = ranges[i][1][1];
+                    let message;
+                    let data_T = [];
+                    let cols_data = 0;
+                    for(k = col_ini;k<=col_end;k++){
+                        data_T.push([]);
+                        for(j = row_ini;j<=row_end;j++){
+                            let one_element = $('#demo').ip_GetElementValue(j,k);
+                            data_T[cols_data].push(one_element);
+                        }
+                        cols_data++;
+                    }
+                    Plot(data_T,"fig. " + fig_cnt.toString());
+                }
+            });
+
+            function Plot(data_T, fig_id){
+                let data = [];
+                if(data_T.length==1){
+                    let x = Array.from(new Array(data_T[0].length), (val, index) => index + 1);
+                    data_T.unshift(x);
+                }
+                for(let i = 1;i<data_T.length;i++){
+                    let x_tmp = data_T[0];
+                    let y_tmp = data_T[i];
+                    let data_flt = [[],[]];
+                    for(let j = 0;j<x_tmp.length;j++){
+                        let xx = x_tmp[j];
+                        let yy = y_tmp[j];
+                        if(!isNaN(xx) && !isNaN(yy) && !(xx===null) && !(yy===null)){
+                            data_flt[0].push(Number(xx));
+                            data_flt[1].push(Number(yy));
+                        }
+                    }
+                    data.push({
+                        name: 'data'+i.toString(),
+                        x: data_flt[0],
+                        y: data_flt[1],
+                        mode: 'lines + markers',
+                    });
+                }
+
+                let layout ={
+                    title: fig_id,
+                    showlegend: false,
+                    xaxis: {
+                        zeroline: false,
+                        linecolor: 'black',
+                        mirror: true,
+                        //type: 'log',
+                        autorange: true
+                    },
+                    yaxis:{
+                        zeroline: false,
+                        linecolor: 'black',
+                        mirror: true,
+                        //title: 'Magnitude (dB)',
+                        autorange: true
+                    },
+                };
+
+                $("<div/>", {
+                    id: fig_id,
+                    class: "css_figure"
+                }).appendTo('#figures');
+
+                Plotly.newPlot(fig_id, data, layout);
+            }
         </script>
-
-
-
-
     </body>
 </html>
