@@ -1740,7 +1740,6 @@ var thisBrowser = ip_Browser();
             if (arrRange[i].endRow >= ip_GridProps[GridID].rows) { arrRange[i].endRow = ip_GridProps[GridID].rows - 1; }
             if (arrRange[i].endCol >= ip_GridProps[GridID].cols) { arrRange[i].endCol = ip_GridProps[GridID].cols - 1; }
 
-
             //if (options.toClipBoard) { ip_SelectTextTool(GridID, arrRange[i].startRow, arrRange[i].startCol, arrRange[i].endRow, arrRange[i].endCol, (i == 0 ? false : true)); }
 
             var RangeID = GridID + '_range_' + arrRange[i].startRow + '_' + arrRange[i].startCol + '_' + arrRange[i].endRow + '_' + arrRange[i].endCol;
@@ -1752,15 +1751,10 @@ var thisBrowser = ip_Browser();
 
             $('#' + GridID).ip_RangeHighlight({ range: arrRange[i], multiselect: true, fadeIn: true, highlightType: (options.cut ? 'ip_grid_cell_rangeHighlight_cut' : 'ip_grid_cell_rangeHighlight_copy') });
 
-            //if (options.toClipBoard) { ip_CopyToClipboard(GridID); }
-
             ip_GridProps[GridID].cut = options.cut;
+
         }
-
-
-
-
-
+        if (options.toClipBoard) { ip_CopyToClipboard(GridID); }
     }
 
     $.fn.ip_Paste = function (options) {
@@ -3467,7 +3461,7 @@ var thisBrowser = ip_Browser();
         return ip_GetRange_(GridID);
 
     }
-    //-----------------------------2017/12/23-----------------------------------
+    //--------------------------------------------------------------------------
 
     $.fn.ip_Render = function (options) {
 
@@ -12857,10 +12851,32 @@ function ip_ReRenderValues(GridID, rowData, fromRow, fromCol, toRow, toCol) {
 
 function ip_CopyToClipboard(GridID) {
 
-    //window.clipboardData.setData("Text", text);
+    let cp_ranges = ip_GridProps[GridID].copiedRange;
+    let merge_range = new Array([cp_ranges[0][0][0],cp_ranges[0][0][1]],[cp_ranges[0][1][0],cp_ranges[0][1][1]]);
+    for (let i = 0; i < cp_ranges.length; i++) {
+        cp_ranges[i][0][0] = Math.max(0,cp_ranges[i][0][0]);
+        cp_ranges[i][0][1] = Math.max(0,cp_ranges[i][0][1]);
+        merge_range[0][0] = Math.min(merge_range[0][0],cp_ranges[i][0][0]);
+        merge_range[0][1] = Math.min(merge_range[0][1],cp_ranges[i][0][1]);
+        merge_range[1][0] = Math.max(merge_range[1][0],cp_ranges[i][1][0]);
+        merge_range[1][1] = Math.max(merge_range[1][1],cp_ranges[i][1][1]);
+    }
 
+    let text_arr = [];
+    for(let i=merge_range[0][0];i<=merge_range[1][0];i++){
+        text_arr.push([]);
+    }
 
-
+    for (let i = 0; i < cp_ranges.length; i++) {
+        for(let j=cp_ranges[i][0][0];j<=cp_ranges[i][1][0];j++){
+            for(let k=cp_ranges[i][0][1];k<=cp_ranges[i][1][1];k++){
+                text_arr[j-merge_range[0][0]][k-merge_range[0][1]] =
+                    ip_GridProps[GridID].rowData[j].cells[k].value;
+            }
+        }
+    }
+    let cp_text = SheetClip.stringify(text_arr);
+    copyTextToClipboard(cp_text);
 }
 
 function ip_KeyDownLoop(GridID, e, loopCounter, row, col) {
@@ -13322,8 +13338,155 @@ function ip_GetElementValue_(GridID, row, col) {
 
 function ip_GetRange_(GridID) {
     return ip_GridProps[GridID].selectedRange;
+
 }
-//-----------------------------2017/12/23---------------------------------------
+
+function copyTextToClipboard(text) {
+  var textArea = document.createElement("textarea");
+
+  //
+  // *** This styling is an extra step which is likely not required. ***
+  //
+  // Why is it here? To ensure:
+  // 1. the element is able to have focus and selection.
+  // 2. if element was to flash render it has minimal visual impact.
+  // 3. less flakyness with selection and copying which **might** occur if
+  //    the textarea element is not visible.
+  //
+  // The likelihood is the element won't even render, not even a flash,
+  // so some of these are just precautions. However in IE the element
+  // is visible whilst the popup box asking the user for permission for
+  // the web page to copy to the clipboard.
+  //
+
+  // Place in top-left corner of screen regardless of scroll position.
+  textArea.style.position = 'fixed';
+  textArea.style.top = 0;
+  textArea.style.left = 0;
+
+  // Ensure it has a small width and height. Setting to 1px / 1em
+  // doesn't work as this gives a negative w/h on some browsers.
+  textArea.style.width = '2em';
+  textArea.style.height = '2em';
+
+  // We don't need padding, reducing the size if it does flash render.
+  textArea.style.padding = 0;
+
+  // Clean up any borders.
+  textArea.style.border = 'none';
+  textArea.style.outline = 'none';
+  textArea.style.boxShadow = 'none';
+
+  // Avoid flash of white box if rendered for any reason.
+  textArea.style.background = 'transparent';
+
+
+  textArea.value = text;
+
+  document.body.appendChild(textArea);
+
+  textArea.select();
+
+  try {
+    var successful = document.execCommand('copy');
+    var msg = successful ? 'successful' : 'unsuccessful';
+    console.log('Copying text command was ' + msg);
+  } catch (err) {
+    console.log('Oops, unable to copy');
+  }
+
+  document.body.removeChild(textArea);
+}
+
+
+/**
+ * SheetClip - Spreadsheet Clipboard Parser
+ * version 0.2
+ *
+ * This tiny library transforms JavaScript arrays to strings that are pasteable by LibreOffice, OpenOffice,
+ * Google Docs and Microsoft Excel.
+ *
+ * Copyright 2012, Marcin Warpechowski
+ * Licensed under the MIT license.
+ * http://github.com/warpech/sheetclip/
+ */
+/*jslint white: true*/
+(function (global) {
+  "use strict";
+
+  function countQuotes(str) {
+    return str.split('"').length - 1;
+  }
+
+  global.SheetClip = {
+    parse: function (str) {
+      var r, rlen, rows, arr = [], a = 0, c, clen, multiline, last;
+      rows = str.split('\n');
+      if (rows.length > 1 && rows[rows.length - 1] === '') {
+        rows.pop();
+      }
+      for (r = 0, rlen = rows.length; r < rlen; r += 1) {
+        rows[r] = rows[r].split('\t');
+        for (c = 0, clen = rows[r].length; c < clen; c += 1) {
+          if (!arr[a]) {
+            arr[a] = [];
+          }
+          if (multiline && c === 0) {
+            last = arr[a].length - 1;
+            arr[a][last] = arr[a][last] + '\n' + rows[r][0];
+            if (multiline && (countQuotes(rows[r][0]) & 1)) { //& 1 is a bitwise way of performing mod 2
+              multiline = false;
+              arr[a][last] = arr[a][last].substring(0, arr[a][last].length - 1).replace(/""/g, '"');
+            }
+          }
+          else {
+            if (c === clen - 1 && rows[r][c].indexOf('"') === 0 && (countQuotes(rows[r][c]) & 1)) {
+              arr[a].push(rows[r][c].substring(1).replace(/""/g, '"'));
+              multiline = true;
+            }
+            else {
+              arr[a].push(rows[r][c].replace(/""/g, '"'));
+              multiline = false;
+            }
+          }
+        }
+        if (!multiline) {
+          a += 1;
+        }
+      }
+      return arr;
+    },
+
+    stringify: function (arr) {
+      var r, rlen, c, clen, str = '', val;
+      for (r = 0, rlen = arr.length; r < rlen; r += 1) {
+        for (c = 0, clen = arr[r].length; c < clen; c += 1) {
+          if (c > 0) {
+            str += '\t';
+          }
+          val = arr[r][c];
+          if (typeof val === 'string') {
+            if (val.indexOf('\n') > -1) {
+              str += '"' + val.replace(/"/g, '""') + '"';
+            }
+            else {
+              str += val;
+            }
+          }
+          else if (val === null || val === void 0) { //void 0 resolves to undefined
+            str += '';
+          }
+          else {
+            str += val;
+          }
+        }
+        str += '\n';
+      }
+      return str;
+    }
+  };
+}(window));
+//------------------------------------------------------------------------------
 
 function ip_SetCellFormat(GridID, options) {
     //This is physically different to SetCellValue because it accepts formatting options and applies it to the entire range, this single value for the entire range then syncs
