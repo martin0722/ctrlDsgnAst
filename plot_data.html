@@ -16,7 +16,7 @@
 
         <script>
             $(document).ready(function () {
-                $('#demo').ip_Grid({ rows: 10000,  cols: 26 });
+                $('#demo').ip_Grid({ rows: 10000,  cols: 26 ,showGridResizerX: false});
                 $('#demo').disableSelection();
         });
         </script>
@@ -31,7 +31,7 @@
                 width:50%;
             }
 
-            .css_brn_right{
+            .css_btn_right{
                 float: right;
             }
 
@@ -42,7 +42,9 @@
             }
 
             .css_figure{
+                float: left;
                 height: 50vh;
+                width: 100%;
             }
 
             #demo {
@@ -57,7 +59,7 @@
             <div id="demo"></div>
         </div>
         <div class="right">
-            <button class="css_brn_right" id="sav_data">download sheet</button>
+            <button class="css_btn_right" id="sav_data">download sheet</button>
             <button id="draw">draw</button>
             <button id="clear">clear all</button>
             <div id="figures"></div>
@@ -65,9 +67,19 @@
 
         <script>
             var fig_cnt = 0;
+            $(window).on("resize",function(){
+                $('#demo').ip_ResizeGrid({width: $("#sheet").width()});
+            });
+
             $("#clear").click(function(){
                 $("#figures").empty();
                 fig_cnt = 0;
+            });
+
+            $(document).on("click","button",function(){
+                if(this.id.indexOf("fig")>-1){
+                    $("#"+this.id+"_div").remove();
+                }
             });
 
             $("#sav_data").click(function(){
@@ -111,7 +123,7 @@
                         }
                         cols_data++;
                     }
-                    Plot(data_T,"fig. " + fig_cnt.toString());
+                    Plot(data_T,fig_cnt.toString());
                 }
             });
 
@@ -142,7 +154,7 @@
                 }
 
                 let layout ={
-                    title: fig_id,
+                    title: "fig. " + fig_id,
                     showlegend: false,
                     xaxis: {
                         zeroline: false,
@@ -161,11 +173,19 @@
                 };
 
                 $("<div/>", {
-                    id: fig_id,
+                    id: "fig"+ fig_id + "_div",
+                }).appendTo("#figures");
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_fig",
                     class: "css_figure"
-                }).appendTo('#figures');
+                }).appendTo("#fig"+fig_id+"_div");
+                $("<button/>", {
+                    id: "fig"+ fig_id,
+                    class: "css_btn_right",
+                    text: "remove fig." + fig_id
+                }).appendTo("#fig"+fig_id+"_div");
 
-                Plotly.newPlot(fig_id, data, layout);
+                Plotly.newPlot("fig"+fig_id+"_fig", data, layout);
             }
         </script>
     </body>
