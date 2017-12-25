@@ -1786,7 +1786,7 @@ var thisBrowser = ip_Browser();
         if (options.row >= ip_GridProps[GridID].rows) { options.row = ip_GridProps[GridID].rows - 1; }
         if (options.col >= ip_GridProps[GridID].cols) { options.col = ip_GridProps[GridID].cols - 1; }
 
-        if (options.fromClipboard) { }
+        if (options.fromClipboard){}
         else if (options.fromRange == null) {
 
             options.fromRange = new Array();
@@ -3459,6 +3459,14 @@ var thisBrowser = ip_Browser();
         var GridID = $(this).attr('id');
 
         return ip_GetRange_(GridID);
+
+    }
+
+    $.fn.ip_PasteFromClipboard = function (e) {
+
+        var GridID = $(this).attr('id');
+
+        return ip_PasteFromClipboard_(GridID, e);
 
     }
     //--------------------------------------------------------------------------
@@ -13338,7 +13346,27 @@ function ip_GetElementValue_(GridID, row, col) {
 
 function ip_GetRange_(GridID) {
     return ip_GridProps[GridID].selectedRange;
+}
 
+function ip_PasteFromClipboard_(GridID, e){
+    if(ip_GridProps[GridID].copiedRange.length==0){
+        let pasted_data = e.originalEvent.clipboardData.getData('text');
+        let pasted_arr = SheetClip.parse(pasted_data);
+        if(ip_GridProps[GridID].selectedRange.length>0){
+            let startXY = [ip_GridProps[GridID].selectedRange[0][0][0],
+                ip_GridProps[GridID].selectedRange[0][0][1]];
+            for(let i=0;i<ip_GridProps[GridID].selectedRange.length;i++){
+                startXY[0] = Math.max(0,Math.min(startXY[0],ip_GridProps[GridID].selectedRange[i][0][0]));
+                startXY[1] = Math.max(0,Math.min(startXY[1],ip_GridProps[GridID].selectedRange[i][0][1]));
+            }
+
+            for(let i = 0;i<pasted_arr.length;i++){
+                for(let j = 0;j<pasted_arr[i].length;j++){
+                    ip_CellInput(GridID, { row: i+startXY[0], col: j+startXY[1], valueRAW: pasted_arr[i][j] });
+                }
+            }
+        }
+    }
 }
 
 function copyTextToClipboard(text) {
@@ -13486,6 +13514,7 @@ function copyTextToClipboard(text) {
     }
   };
 }(window));
+
 //------------------------------------------------------------------------------
 
 function ip_SetCellFormat(GridID, options) {

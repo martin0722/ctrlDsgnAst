@@ -71,16 +71,6 @@
                 $('#demo').ip_ResizeGrid({width: $("#sheet").width()});
             });
 
-            $(window).bind("paste", function(e){
-                let pastedData = e.originalEvent.clipboardData.getData('text');
-                //console.log(e.originalEvent.clipboardData);
-            });
-
-            $(window).bind("copy", function(e){
-                let copiedData = window.getSelection().toString();
-                //console.log(e.originalEvent.clipboardData);
-            });
-
             $("#clear").click(function(){
                 $("#figures").empty();
                 fig_cnt = 0;
@@ -90,6 +80,10 @@
                 if(this.id.indexOf("fig")>-1){
                     $("#"+this.id+"_div").remove();
                 }
+            });
+
+            $(window).bind("paste", function(e){
+                $('#demo').ip_PasteFromClipboard(e);
             });
 
             $("#sav_data").click(function(){
