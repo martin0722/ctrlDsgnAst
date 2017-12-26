@@ -23,7 +23,7 @@
 
         <style>
             body {
-                background-color: #fff;
+                background-color: #696969;
             }
 
             .right{
@@ -42,6 +42,7 @@
             }
 
             .css_figure{
+
                 float: left;
                 height: 50vh;
                 width: 100%;
@@ -111,24 +112,41 @@
             $("#draw").click(function(){
                 fig_cnt++;
                 let ranges = $('#demo').ip_GetRange();
-                for(let i = 0; i<ranges.length; i++){
-                    let row_ini = Math.max(0,ranges[i][0][0]);
-                    let col_ini = Math.max(0,ranges[i][0][1]);
-                    let row_end = ranges[i][1][0];
-                    let col_end = ranges[i][1][1];
-                    let message;
-                    let data_T = [];
-                    let cols_data = 0;
-                    for(k = col_ini;k<=col_end;k++){
-                        data_T.push([]);
-                        for(j = row_ini;j<=row_end;j++){
-                            let one_element = $('#demo').ip_GetElementValue(j,k);
-                            data_T[cols_data].push(one_element);
-                        }
-                        cols_data++;
+                let minrc = [ranges[0][0][0],ranges[0][0][1]];
+                let maxrc = [ranges[0][1][0],ranges[0][1][1]];
+                for(let i = 1; i<ranges.length; i++){
+                    if(minrc[1]>ranges[i][0][1]){
+                        minrc[0] = ranges[i][0][0];
+                        minrc[1] = ranges[i][0][1];
                     }
-                    Plot(data_T,fig_cnt.toString());
+                    else if(minrc[1]==ranges[i][0][1] && minrc[0]>ranges[i][0][0]){
+                        if(maxrc[0]<ranges[i][1][0]){
+                            maxrc[0] = ranges[i][1][0];
+                        }
+                    }
+                    if(maxrc[1]<ranges[i][1][1]){
+                        maxrc[1] = ranges[i][1][1];
+                    }
                 }
+                minrc[0] = Math.max(0,minrc[0]);
+                minrc[1] = Math.max(0,minrc[1]);
+
+                let data_T = [];
+                for(let i = minrc[1]; i<=maxrc[1]; i++){
+                    data_T.push([]);
+                }
+
+                for(let i = 0; i<ranges.length; i++){
+                    for(let k=ranges[i][0][1];k<=ranges[i][1][1];k++){
+                        for(let j=ranges[i][0][0];j<=ranges[i][1][0];j++){
+                            if(k>=minrc[1]&&k<=maxrc[1]&&j>=minrc[0]&&j<=maxrc[0]){
+                                let one_element = $('#demo').ip_GetElementValue(j,k);
+                                data_T[k-minrc[1]][j-minrc[0]] = one_element;
+                            }
+                        }
+                    }
+                }
+                Plot(data_T,fig_cnt.toString());
             });
 
             function Plot(data_T, fig_id){
@@ -158,6 +176,7 @@
                 }
 
                 let layout ={
+                    paper_bgcolor: 'rgb(150,150,150)',
                     title: "fig. " + fig_id,
                     showlegend: false,
                     xaxis: {
