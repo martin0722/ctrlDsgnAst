@@ -155,10 +155,13 @@
                     let x = Array.from(new Array(data_T[0].length), (val, index) => index + 1);
                     data_T.unshift(x);
                 }
+
+                data_count = 0;
                 for(let i = 1;i<data_T.length;i++){
                     let x_tmp = data_T[0];
                     let y_tmp = data_T[i];
                     let data_flt = [[],[]];
+                    let data_name = "";
                     for(let j = 0;j<x_tmp.length;j++){
                         let xx = x_tmp[j];
                         let yy = y_tmp[j];
@@ -166,19 +169,30 @@
                             data_flt[0].push(Number(xx));
                             data_flt[1].push(Number(yy));
                         }
+                        else if(isNaN(xx) && isNaN(yy) && xx!==undefined && yy!==undefined && j==0){
+                            data_name = yy;
+                            console.log(yy);
+                        }
                     }
-                    data.push({
-                        name: 'data'+i.toString(),
-                        x: data_flt[0],
-                        y: data_flt[1],
-                        mode: 'lines + markers',
-                    });
+
+                    if(data_flt[1].length>0){
+                        if(data_name.length==0){
+                            data_count++;
+                            data_name = "data"+data_count.toString();
+                        }
+                        data.push({
+                            name: data_name,
+                            x: data_flt[0],
+                            y: data_flt[1],
+                            mode: 'lines + markers',
+                        });
+                    }
                 }
 
                 let layout ={
                     paper_bgcolor: 'rgb(150,150,150)',
                     title: "fig. " + fig_id,
-                    showlegend: false,
+                    showlegend: true,
                     xaxis: {
                         zeroline: false,
                         linecolor: 'black',
@@ -186,7 +200,7 @@
                         //type: 'log',
                         autorange: true
                     },
-                    yaxis:{
+                    yaxis: {
                         zeroline: false,
                         linecolor: 'black',
                         mirror: true,
@@ -209,6 +223,7 @@
                 }).appendTo("#fig"+fig_id+"_div");
 
                 Plotly.newPlot("fig"+fig_id+"_fig", data, layout);
+                //Plotly.relayout("fig"+fig_id+"_fig", update);
             }
         </script>
     </body>

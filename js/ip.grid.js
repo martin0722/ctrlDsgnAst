@@ -13362,6 +13362,9 @@ function ip_PasteFromClipboard_(GridID, e){
 
             for(let i = 0;i<pasted_arr.length;i++){
                 for(let j = 0;j<pasted_arr[i].length;j++){
+                    if(pasted_arr[i][j].length==0){
+                        pasted_arr[i][j] = undefined;
+                    }
                     ip_CellInput(GridID, { row: i+startXY[0], col: j+startXY[1], valueRAW: pasted_arr[i][j] });
                 }
             }
