@@ -7,6 +7,8 @@
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
         <link href="css/ip.grid.css" rel="stylesheet">
+        <link href="css/magic-check.css" rel="stylesheet">
+
 
 		<script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.4/jquery.min.js"></script>
 		<script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
@@ -31,8 +33,14 @@
                 width:50%;
             }
 
-            .css_btn_right{
+            .float_right{
                 float: right;
+                padding:5px;
+            }
+
+            .float_left{
+                float: left;
+                padding:5px;
             }
 
             .left{
@@ -42,7 +50,6 @@
             }
 
             .css_figure{
-
                 float: left;
                 height: 50vh;
                 width: 100%;
@@ -60,9 +67,9 @@
             <div id="demo"></div>
         </div>
         <div class="right">
-            <button class="css_btn_right" id="sav_data">download sheet</button>
-            <button id="draw">draw</button>
-            <button id="clear">clear all</button>
+            <button class="btn btn-primary float_right" id="sav_data">download sheet</button>
+            <button class="btn btn-primary" id="draw">draw</button>
+            <button class="btn btn-primary" id="clear">clear all</button>
             <div id="figures"></div>
         </div>
 
@@ -81,6 +88,59 @@
                 if(this.id.indexOf("fig")>-1){
                     $("#"+this.id+"_div").remove();
                 }
+            });
+
+            $(document).on("dblclick","div",function(){
+                //if(this.id == "fig1_fig"){
+                    console.log(this.id);
+                //}
+
+            });
+
+            $(document).on('change', '[type=checkbox]', function() {
+                let ck_id = this.id;
+                let parts = ck_id.split("_ck_");
+
+                if(parts[1] == "leg"){
+                    let ck_status = $("#"+ck_id).prop("checked");
+                    let update = {showlegend: ck_status};
+                    Plotly.relayout(parts[0]+"_fig", update);
+                }
+                if(parts[1] == "dot"){
+                    let ck_status_dot = $("#"+ck_id).prop("checked");
+                    let ck_status_line = $("#"+parts[0]+"_ck_line").prop("checked");
+                    if(ck_status_line){
+                        let plot_mode;
+                        if(ck_status_dot){
+                            plot_mode = "lines + markers";
+                            $("#"+parts[0]+"_ck_line").attr("disabled", false);
+                        }
+                        else{
+                            plot_mode = "lines";
+                            $("#"+parts[0]+"_ck_line").attr("disabled", true);
+                        }
+                        let update = {mode: plot_mode};
+                        Plotly.restyle(parts[0]+"_fig", update);
+                    }
+                }
+                if(parts[1] == "line"){
+                    let ck_status_line = $("#"+ck_id).prop("checked");
+                    let ck_status_dot = $("#"+parts[0]+"_ck_dot").prop("checked");
+                    if(ck_status_dot){
+                        let plot_mode;
+                        if(ck_status_line){
+                            plot_mode = "lines + markers";
+                            $("#"+parts[0]+"_ck_dot").attr("disabled", false);
+                        }
+                        else{
+                            plot_mode = "markers";
+                            $("#"+parts[0]+"_ck_dot").attr("disabled", true);
+                        }
+                        let update = {mode: plot_mode};
+                        Plotly.restyle(parts[0]+"_fig", update);
+                    }
+                }
+
             });
 
             $(window).bind("paste", function(e){
@@ -110,8 +170,11 @@
             });
 
             $("#draw").click(function(){
-                fig_cnt++;
                 let ranges = $('#demo').ip_GetRange();
+                if(ranges.length==0){
+                    return;
+                }
+                fig_cnt++;
                 let minrc = [ranges[0][0][0],ranges[0][0][1]];
                 let maxrc = [ranges[0][1][0],ranges[0][1][1]];
                 for(let i = 1; i<ranges.length; i++){
@@ -171,7 +234,6 @@
                         }
                         else if(isNaN(xx) && isNaN(yy) && xx!==undefined && yy!==undefined && j==0){
                             data_name = yy;
-                            console.log(yy);
                         }
                     }
 
@@ -190,9 +252,9 @@
                 }
 
                 let layout ={
-                    paper_bgcolor: 'rgb(150,150,150)',
+                    //paper_bgcolor: 'rgb(150,150,150)',
                     title: "fig. " + fig_id,
-                    showlegend: true,
+                    showlegend: false,
                     xaxis: {
                         zeroline: false,
                         linecolor: 'black',
@@ -213,17 +275,77 @@
                     id: "fig"+ fig_id + "_div",
                 }).appendTo("#figures");
                 $("<div/>", {
-                    id: "fig"+ fig_id + "_fig",
-                    class: "css_figure"
+                    id: "fig"+ fig_id + "_div_main",
                 }).appendTo("#fig"+fig_id+"_div");
-                $("<button/>", {
-                    id: "fig"+ fig_id,
-                    class: "css_btn_right",
-                    text: "remove fig." + fig_id
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_div_sub",
                 }).appendTo("#fig"+fig_id+"_div");
 
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_fig",
+                    class: "css_figure"
+                }).appendTo("#fig"+fig_id+"_div_main");
+
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_div_sub0",
+                    style: "background-color:#fff;",
+                    class: "float_right"
+                }).appendTo("#fig"+fig_id+"_div_sub");
+                $("<button/>", {
+                    id: "fig"+ fig_id,
+                    class: "btn btn-danger",
+                    text: "remove fig." + fig_id
+                }).appendTo("#fig"+fig_id+"_div_sub0");
+
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_div_sub1",
+                    style: "background-color:#fff;",
+                    class: "float_left"
+                }).appendTo("#fig"+fig_id+"_div_sub");
+                $("<input/>", {
+                    type: "checkbox",
+                    class: "magic-checkbox",
+                    id: "fig"+ fig_id+"_ck_leg",
+                }).appendTo("#fig"+fig_id+"_div_sub1");
+                $("<label/>", {
+                    for: "fig"+ fig_id+"_ck_leg",
+                    text: "legend"
+                }).appendTo("#fig"+fig_id+"_div_sub1");
+
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_div_sub2",
+                    style: "background-color:#fff;",
+                    class: "float_left"
+                }).appendTo("#fig"+fig_id+"_div_sub");
+                $("<input/>", {
+                    type: "checkbox",
+                    class: "magic-checkbox",
+                    checked: "isChecked",
+                    id: "fig"+ fig_id+"_ck_dot",
+                }).appendTo("#fig"+fig_id+"_div_sub2");
+                $("<label/>", {
+                    for: "fig"+ fig_id+"_ck_dot",
+                    text: "dot style"
+                }).appendTo("#fig"+fig_id+"_div_sub2");
+
+                $("<div/>", {
+                    id: "fig"+ fig_id + "_div_sub3",
+                    style: "background-color:#fff;",
+                    class: "float_left"
+                }).appendTo("#fig"+fig_id+"_div_sub");
+                $("<input/>", {
+                    type: "checkbox",
+                    class: "magic-checkbox",
+                    checked: "isChecked",
+                    id: "fig"+ fig_id+"_ck_line",
+                }).appendTo("#fig"+fig_id+"_div_sub3");
+                $("<label/>", {
+                    for: "fig"+ fig_id+"_ck_line",
+                    text: "line style"
+                }).appendTo("#fig"+fig_id+"_div_sub3");
+
+
                 Plotly.newPlot("fig"+fig_id+"_fig", data, layout);
-                //Plotly.relayout("fig"+fig_id+"_fig", update);
             }
         </script>
     </body>
