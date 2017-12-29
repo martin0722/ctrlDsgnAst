@@ -30,6 +30,7 @@
 
             .right{
                 float: right;
+                padding:10px;
                 width:50%;
             }
 
@@ -50,9 +51,12 @@
             }
 
             .css_figure{
-                float: left;
-                height: 50vh;
-                width: 100%;
+                width:100%;
+                height:500px;
+                border:5px #696969 solid;
+                padding:10px;
+                background-color:#fff;
+                text-align:center;
             }
 
             #demo {
@@ -71,6 +75,25 @@
             <button class="btn btn-primary" id="draw">draw</button>
             <button class="btn btn-primary" id="clear">clear all</button>
             <div id="figures"></div>
+        </div>
+
+        <!-- Modal -->
+        <div class="modal fade" id="myModal" role="dialog">
+            <div class="modal-dialog modal-sm">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <button type="button" class="close" data-dismiss="modal">&times;</button>
+                  <h4 class="modal-title">Modal Header</h4>
+                </div>
+                <div class="modal-body">
+                  <p>This is a small modal.</p>
+                  <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="Enter email">
+                </div>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+              </div>
+            </div>
         </div>
 
         <script>
@@ -215,7 +238,14 @@
             function Plot(data_T, fig_id){
                 let data = [];
                 if(data_T.length==1){
-                    let x = Array.from(new Array(data_T[0].length), (val, index) => index + 1);
+                    let x;
+                    if(isNaN(data_T[0][0]) && data_T[0][0]!==undefined){
+                        x = Array.from(new Array(data_T[0].length), (val, index) => index);
+                        x[0] = "x"
+                    }
+                    else{
+                        x = Array.from(new Array(data_T[0].length), (val, index) => index + 1);
+                    }
                     data_T.unshift(x);
                 }
 
@@ -273,6 +303,7 @@
 
                 $("<div/>", {
                     id: "fig"+ fig_id + "_div",
+                    class: "css_figure",
                 }).appendTo("#figures");
                 $("<div/>", {
                     id: "fig"+ fig_id + "_div_main",
@@ -283,23 +314,32 @@
 
                 $("<div/>", {
                     id: "fig"+ fig_id + "_fig",
-                    class: "css_figure"
                 }).appendTo("#fig"+fig_id+"_div_main");
 
                 $("<div/>", {
                     id: "fig"+ fig_id + "_div_sub0",
-                    style: "background-color:#fff;",
                     class: "float_right"
                 }).appendTo("#fig"+fig_id+"_div_sub");
                 $("<button/>", {
                     id: "fig"+ fig_id,
-                    class: "btn btn-danger",
+                    class: "btn btn-danger btn-xs",
                     text: "remove fig." + fig_id
                 }).appendTo("#fig"+fig_id+"_div_sub0");
 
                 $("<div/>", {
+                    id: "fig"+ fig_id + "_div_sub0_",
+                    class: "float_right"
+                }).appendTo("#fig"+fig_id+"_div_sub");
+                $("<button/>", {
+                    id: "fig"+ fig_id + "_edt",
+                    class: "btn btn-primary btn-xs",
+                    'data-toggle': "modal",
+                    'data-target': "#myModal",
+                    text: "Edit"
+                }).appendTo("#fig"+fig_id+"_div_sub0_");
+
+                $("<div/>", {
                     id: "fig"+ fig_id + "_div_sub1",
-                    style: "background-color:#fff;",
                     class: "float_left"
                 }).appendTo("#fig"+fig_id+"_div_sub");
                 $("<input/>", {
@@ -314,7 +354,6 @@
 
                 $("<div/>", {
                     id: "fig"+ fig_id + "_div_sub2",
-                    style: "background-color:#fff;",
                     class: "float_left"
                 }).appendTo("#fig"+fig_id+"_div_sub");
                 $("<input/>", {
@@ -330,7 +369,6 @@
 
                 $("<div/>", {
                     id: "fig"+ fig_id + "_div_sub3",
-                    style: "background-color:#fff;",
                     class: "float_left"
                 }).appendTo("#fig"+fig_id+"_div_sub");
                 $("<input/>", {
@@ -343,7 +381,6 @@
                     for: "fig"+ fig_id+"_ck_line",
                     text: "line style"
                 }).appendTo("#fig"+fig_id+"_div_sub3");
-
 
                 Plotly.newPlot("fig"+fig_id+"_fig", data, layout);
             }
