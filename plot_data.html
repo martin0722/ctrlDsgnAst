@@ -6,6 +6,7 @@
         <title>plot data</title>
 
 		<link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0-alpha.5/css/bootstrap.min.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
         <link href="css/ip.grid.css" rel="stylesheet">
         <link href="css/magic-check.css" rel="stylesheet">
 
@@ -84,9 +85,16 @@
             <div id="demo"></div>
         </div>
         <div class="right">
-            <button class="btn btn-primary float_right" style="margin-right:5px;" id="sav_data">download sheet</button>
-            <button class="btn btn-primary" style="padding:5px;margin-left:5px;" id="draw">draw</button>
-            <button class="btn btn-primary" style="padding:5px;" id="clear">clear all</button>
+
+            <button class="btn btn-primary float_right" style="margin-right:5px;" id="sav_data">
+                <i class="fa fa-download" aria-hidden="true" style="margin-right:5px;"></i>download sheet
+            </button>
+            <button class="btn btn-primary" style="padding:5px;margin-left:5px;" id="draw">
+                <i class="fa fa-line-chart" aria-hidden="true" style="margin-right:5px;"></i>draw
+            </button>
+            <button class="btn btn-primary" style="padding:5px;" id="clear">
+                <i class="fa fa-trash-o" aria-hidden="true" style="margin-right:5px;"></i> clear all
+            </button>
             <div id="figures"></div>
         </div>
 
