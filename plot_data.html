@@ -311,6 +311,7 @@
                 }
 
                 data_count = 0;
+                let xlabel_name = "";
                 for(let i = 1;i<data_T.length;i++){
                     let x_tmp = data_T[0];
                     let y_tmp = data_T[i];
@@ -324,6 +325,7 @@
                             data_flt[1].push(Number(yy));
                         }
                         else if(isNaN(xx) && isNaN(yy) && xx!==undefined && yy!==undefined && j==0){
+                            xlabel_name = xx;
                             data_name = yy;
                         }
                     }
@@ -346,6 +348,7 @@
                     title: "fig. " + fig_id,
                     showlegend: false,
                     xaxis: {
+                        title: xlabel_name,
                         zeroline: false,
                         linecolor: 'black',
                         mirror: true,
@@ -355,7 +358,6 @@
                         zeroline: false,
                         linecolor: 'black',
                         mirror: true,
-                        //title: 'Magnitude (dB)',
                         autorange: true
                     },
                 };
