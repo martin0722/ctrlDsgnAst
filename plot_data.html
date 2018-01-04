@@ -84,35 +84,47 @@
             <div id="demo"></div>
         </div>
         <div class="right">
-            <button class="btn btn-primary float_right" id="sav_data">download sheet</button>
-            <button class="btn btn-primary" id="draw">draw</button>
-            <button class="btn btn-primary" id="clear">clear all</button>
+            <button class="btn btn-primary float_right" style="margin-right:5px;" id="sav_data">download sheet</button>
+            <button class="btn btn-primary" style="padding:5px;margin-left:5px;" id="draw">draw</button>
+            <button class="btn btn-primary" style="padding:5px;" id="clear">clear all</button>
             <div id="figures"></div>
         </div>
 
         <!-- Modal -->
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div class="modal-dialog" role="document">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h5 class="modal-title" id="exampleModalLabel">Modal title</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                  <span aria-hidden="true">&times;</span>
-                </button>
-              </div>
-              <div class="modal-body">
-                ...
-              </div>
-              <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                <button type="button" class="btn btn-primary">Save changes</button>
-              </div>
+            <div class="modal-dialog modal-sm" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Edit figure content</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="form-group">
+                            <label for="title">Title</label>
+                            <input class="form-control" id="title">
+                        </div>
+                        <div class="form-group">
+                            <label for="xlabel">XLabel</label>
+                            <input class="form-control" id="xlabel">
+                        </div>
+                        <div class="form-group">
+                            <label for="ylabel">YLabel</label>
+                            <input class="form-control" id="ylabel">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                        <button type="button" class="btn btn-primary" id="modal_save" data-dismiss="modal">Save changes</button>
+                    </div>
+                </div>
             </div>
-          </div>
         </div>
 
         <script>
             var fig_cnt = 0;
+            var fig_edit_id;
             $(window).on("resize",function(){
                 $('#demo').ip_ResizeGrid({width: $("#sheet").width()});
             });
@@ -126,6 +138,21 @@
                 if(this.id.indexOf("fig")>-1){
                     $("#"+this.id+"_div").remove();
                 }
+                if(this.id.indexOf("_edt")>-1){
+                    let parts = this.id.split("_");
+                    fig_edit_id=parts[0];
+                    $('#myModal').modal();
+                    $('#title').val($("#"+fig_edit_id+"_fig")[0]["layout"]["title"]);
+                    $('#xlabel').val($("#"+fig_edit_id+"_fig")[0]["layout"]["xaxis"]["title"]);
+                    $('#ylabel').val($("#"+fig_edit_id+"_fig")[0]["layout"]["yaxis"]["title"]);
+                }
+                if(this.id.indexOf("modal_save")>-1){
+                    $("#"+fig_edit_id+"_fig")[0]["layout"]["title"] = $('#title').val();
+                    $("#"+fig_edit_id+"_fig")[0]["layout"]["xaxis"]["title"] = $('#xlabel').val();
+                    $("#"+fig_edit_id+"_fig")[0]["layout"]["yaxis"]["title"] = $('#ylabel').val();
+                    let update = $("#"+fig_edit_id+"_fig")[0]["layout"];
+                    Plotly.relayout(fig_edit_id+"_fig", update);
+                }
             });
 
             $(document).on('change', '[type=checkbox]', function() {
@@ -134,7 +161,8 @@
 
                 if(parts[1] == "leg"){
                     let ck_status = $("#"+ck_id).prop("checked");
-                    let update = {showlegend: ck_status};
+                    $("#"+parts[0]+"_fig")[0]["layout"]["showlegend"] = ck_status;
+                    let update = $("#"+parts[0]+"_fig")[0]["layout"];
                     Plotly.relayout(parts[0]+"_fig", update);
                 }
 
@@ -175,41 +203,25 @@
 
                 if(parts[1] == "logx"){
                     let ck_status = $("#"+ck_id).prop("checked");
-                    let update;
                     if(ck_status){
-                        update = {xaxis: {type: "log",
-                                            zeroline: false,
-                                            linecolor: 'black',
-                                            mirror: true,
-                                            autorange: true}};
+                        $("#"+parts[0]+"_fig")[0]["layout"]["xaxis"]["type"] = "log";
                     }
                     else{
-                        update = {xaxis: {type: "linear",
-                                            zeroline: false,
-                                            linecolor: 'black',
-                                            mirror: true,
-                                            autorange: true}};
+                        $("#"+parts[0]+"_fig")[0]["layout"]["xaxis"]["type"] = "linear";
                     }
+                    let update = $("#"+parts[0]+"_fig")[0]["layout"];
                     Plotly.relayout(parts[0]+"_fig", update);
                 }
 
                 if(parts[1] == "logy"){
                     let ck_status = $("#"+ck_id).prop("checked");
-                    let update;
                     if(ck_status){
-                        update = {yaxis: {type: "log",
-                                            zeroline: false,
-                                            linecolor: 'black',
-                                            mirror: true,
-                                            autorange: true}};
+                        $("#"+parts[0]+"_fig")[0]["layout"]["yaxis"]["type"] = "log";
                     }
                     else{
-                        update = {yaxis: {type: "linear",
-                                            zeroline: false,
-                                            linecolor: 'black',
-                                            mirror: true,
-                                            autorange: true}};
+                        $("#"+parts[0]+"_fig")[0]["layout"]["yaxis"]["type"] = "linear";
                     }
+                    let update = $("#"+parts[0]+"_fig")[0]["layout"];
                     Plotly.relayout(parts[0]+"_fig", update);
                 }
 
@@ -380,8 +392,6 @@
                 $("<button/>", {
                     id: "fig"+ fig_id + "_edt",
                     class: "btn btn-primary btn-sm",
-                    'data-toggle': "modal",
-                    'data-target': "#myModal",
                     text: "Edit"
                 }).appendTo("#fig"+fig_id+"_div_sub0_");
 
